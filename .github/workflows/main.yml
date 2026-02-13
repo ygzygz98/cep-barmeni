@@ -37,13 +37,11 @@ jobs:
         pip install flet
         pip install -r requirements.txt
 
-    - name: Proje Dosyalarını Hazırla (Önemli Adım)
-      run: |
-        flet create .
-
     - name: APK Oluştur (Build)
       run: |
-        flet build apk --verbose
+        # yes komutu, sorulan her soruya otomatik "y" (evet) cevabı verir.
+        # Ayrıca --project-name gibi detayları önden veriyoruz ki soru sormasın.
+        yes | flet build apk --project-name "cep_barmeni" --product "Cep Barmeni" --org "com.yagiz" --verbose
 
     - name: APK Dosyasını Yükle (Artifact)
       uses: actions/upload-artifact@v4
