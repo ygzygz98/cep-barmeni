@@ -18,7 +18,7 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Java Kur (Android İçin Gerekli)
+    - name: Java Kur
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
@@ -36,6 +36,10 @@ jobs:
       run: |
         pip install flet
         pip install -r requirements.txt
+
+    - name: Proje Dosyalarını Hazırla (Önemli Adım)
+      run: |
+        flet create .
 
     - name: APK Oluştur (Build)
       run: |
