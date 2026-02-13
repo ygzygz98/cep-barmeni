@@ -2,33 +2,37 @@ import flet as ft
 import json
 import os
 
-# --- AYARLAR ---
-# Verilerin telefonda kaybolmaması için güvenli yol seçimi
-def dosya_yolu_getir():
-    try:
-        # Android/Mobil cihazlar için güvenli kayıt yolu
-        return os.path.join(os.getenv('FLET_APP_STORAGE_DATA_DIR', '.'), 'kokteyller.json')
-    except:
-        return 'kokteyller.json'
-
-DOSYA_ADI = dosya_yolu_getir()
-
-VARSAYILANLAR = [
-    {"isim": "Mojito", "malzeme": "Rom, Nane, Limon, Soda", "tarif": "Naneyi ez, karıştır."},
-    {"isim": "Whiskey Sour", "malzeme": "Viski, Limon, Şeker", "tarif": "Çalkala ve süz."}
-]
-
 def main(page: ft.Page):
-    # Telefon Görünümü Ayarları
+    # --- AYARLAR ---
     page.title = "Cep Barmeni"
     page.theme_mode = "dark" 
     page.padding = 0 
     
-    # Mobilde klavye açılınca ekranın kaymasını engeller
-    page.window_prevent_close = True
+    # DİKKAT: window_prevent_close gibi PC kodlarını sildik.
+    # Android'de bunlar hataya sebep olur.
+
+    # --- DOSYA YOLU AYARI ---
+    # Android'de güvenli kayıt yeri bulmaya çalışır, bulamazsa geçici hafızayı kullanır.
+    def dosya_yolu_getir():
+        try:
+            data_dir = os.getenv('FLET_APP_STORAGE_DATA_DIR')
+            if data_dir:
+                return os.path.join(data_dir, 'kokteyller.json')
+            else:
+                return 'kokteyller.json'
+        except:
+            return 'kokteyller.json'
+
+    DOSYA_ADI = dosya_yolu_getir()
+
+    VARSAYILANLAR = [
+        {"isim": "Mojito", "malzeme": "Rom, Nane, Limon, Soda", "tarif": "Naneyi ez, karıştır."},
+        {"isim": "Whiskey Sour", "malzeme": "Viski, Limon, Şeker", "tarif": "Çalkala ve süz."}
+    ]
 
     # --- VERİ İŞLEMLERİ ---
     def verileri_cek():
+        # Dosya yoksa veya bozuksa varsayılanları getir (Çökme koruması)
         if os.path.exists(DOSYA_ADI):
             try:
                 with open(DOSYA_ADI, "r", encoding="utf-8") as f:
@@ -38,8 +42,11 @@ def main(page: ft.Page):
         return VARSAYILANLAR.copy()
 
     def verileri_yaz(liste):
-        with open(DOSYA_ADI, "w", encoding="utf-8") as f:
-            json.dump(liste, f, ensure_ascii=False, indent=4)
+        try:
+            with open(DOSYA_ADI, "w", encoding="utf-8") as f:
+                json.dump(liste, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            print(f"Kayıt hatası: {e}") # Hatayı gizli tut, ekrana yansıtma
 
     # Uygulama hafızasındaki liste
     kokteyl_listesi = verileri_cek()
@@ -50,6 +57,7 @@ def main(page: ft.Page):
     def git_ana_sayfa():
         page.clean()
         
+        # Scroll 'auto' diyerek taşmaları engelliyoruz
         liste_kutusu = ft.Column(spacing=5, scroll="auto", expand=True)
 
         def listeyi_guncelle(aranan_metin=""):
@@ -77,7 +85,7 @@ def main(page: ft.Page):
         header = ft.Container(
             content=ft.Column([
                 ft.Text("Kokteyl Rehberi", size=28, weight="bold", color="white"),
-                ft.TextField(label="Kokteyl Ara...", prefix_icon="search", on_change=arama_tetiklendi, border_radius=15)
+                ft.TextField(label="Ara...", prefix_icon="search", on_change=arama_tetiklendi, border_radius=15)
             ]),
             padding=20,
             bgcolor="#263238"
@@ -169,7 +177,7 @@ def main(page: ft.Page):
             t_isim, t_malzeme, t_tarif,
             ft.Container(height=20),
             ft.ElevatedButton("KAYDET", icon="save", bgcolor="green", color="white", width=200, on_click=kaydet)
-        ], horizontal_alignment="center")
+        ], horizontal_alignment="center", scroll="auto") # Form uzun olursa kaydırılabilsin
 
         app_bar = ft.AppBar(
             leading=ft.IconButton(icon="close", on_click=lambda _: git_ana_sayfa()),
@@ -177,7 +185,7 @@ def main(page: ft.Page):
             bgcolor="#263238"
         )
 
-        page.add(app_bar, ft.Container(content=form_icerik, padding=20))
+        page.add(app_bar, ft.Container(content=form_icerik, padding=20, expand=True))
 
     git_ana_sayfa()
 
