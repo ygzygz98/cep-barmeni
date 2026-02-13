@@ -39,9 +39,10 @@ jobs:
 
     - name: APK Oluştur (Build)
       run: |
-        # yes komutu, sorulan her soruya otomatik "y" (evet) cevabı verir.
-        # Ayrıca --project-name gibi detayları önden veriyoruz ki soru sormasın.
-        yes | flet build apk --project-name "cep_barmeni" --product "Cep Barmeni" --org "com.yagiz" --verbose
+        # "yes" komutu, robotun soracağı "Emin misin?", "İsim şu olsun mu?" 
+        # gibi tüm sorulara otomatik "y" (evet) diyerek geçmesini sağlar.
+        # Yanlış argümanları sildik, sadece build ediyoruz.
+        yes | flet build apk --verbose
 
     - name: APK Dosyasını Yükle (Artifact)
       uses: actions/upload-artifact@v4
